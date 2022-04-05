@@ -2,8 +2,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { isAddress } from "@ethersproject/address";
 
-import { StaticJsonRpcProvider } from "@ethersproject/providers";
-const provider = new StaticJsonRpcProvider(
+import { CyberProvider } from "../../utils/resolver";
+const provider = new CyberProvider(
   "https://mainnet.infura.io/v3/df3ea510dc9b4b16b05e7ddf74b64f19"
 );
 
