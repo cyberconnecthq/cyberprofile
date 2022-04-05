@@ -53,7 +53,7 @@ export default async function handler(
     res
       .status(200)
       .setHeader(
-        "CDN-Cache-Control",
+        "Cache-Control",
         `s-maxage=${60 * 60 * 24}, stale-while-revalidate`
       )
       .json({ address, name, primaryName, ensAvatar });
