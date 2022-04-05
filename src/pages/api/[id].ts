@@ -50,7 +50,13 @@ export default async function handler(
       };
     }
 
-    res.status(200).json({ address, name, primaryName, ensAvatar });
+    res
+      .status(200)
+      .setHeader(
+        "CDN-Cache-Control",
+        `s-maxage=${60 * 60 * 24}, stale-while-revalidate`
+      )
+      .json({ address, name, primaryName, ensAvatar });
   } catch (e) {
     if (e === NotFoundError) {
       res.status(404).end();
