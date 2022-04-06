@@ -13,16 +13,27 @@ export default async function handler(
   res: NextApiResponse<Buffer>
 ) {
   const queryId = req.query.id;
+  let size = 80; // following gravatar default
+  if (req.query.s) {
+    const requestedSize = parseInt(req.query.s as string); // optional size input
+    if (1 < requestedSize && requestedSize < 2048) {
+      size = requestedSize
+    }
+  }
   const id = Array.isArray(queryId) ? queryId[0] : queryId;
   try {
-    const { address, name } = await parseId(id);
-    const { primaryName, avatar } = await resolveEns(address);
+    const { address } = await parseId(id);
+    const { avatar } = await resolveEns(address);
     if (avatar?.url) {
       const url = avatar.url;
       const result = (await axios({ url, responseType: "arraybuffer" }))
         .data as Buffer;
-      const sharped = await sharp(result).webp({ lossless: true }).toBuffer();
-      if (result.length > maxSize) {
+      const sharped = await sharp(result)
+        .resize(size, size)
+        .webp({ lossless: true })
+        .toBuffer();
+      if (sharped.length > maxSize) {
+        console.error(`response size is ${sharped.length}, > 4mb`);
         // TODO: resize
       }
       res
@@ -37,6 +48,7 @@ export default async function handler(
       throw NotFoundError;
     }
   } catch (e) {
+    console.error(e);
     if (e === NotFoundError) {
       res.status(404).end();
     }
