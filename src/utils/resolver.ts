@@ -1,5 +1,4 @@
 import { Resolver, StaticJsonRpcProvider } from "@ethersproject/providers";
-import { Avatar } from "@ethersproject/providers/lib/base-provider";
 import {
   hexConcat,
   hexDataSlice,
@@ -333,7 +332,6 @@ export class CyberProvider extends StaticJsonRpcProvider {
     }
 
     const avatar = await resolver.getCyberAvatar();
-    logger.warn(avatar);
 
     return avatar;
   }

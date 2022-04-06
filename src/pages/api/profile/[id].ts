@@ -1,11 +1,9 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
-import { isAddress } from "@ethersproject/address";
 
-import { CyberProvider } from "../../utils/resolver";
-const provider = new CyberProvider(
-  "https://mainnet.infura.io/v3/df3ea510dc9b4b16b05e7ddf74b64f19"
-);
+import { parseId } from '@/utils/parser'
+import { NotFoundError } from "@/utils/const";
+import { resolveEns } from "@/utils/provider";
 
 type DataEnsAvatar = {
   record: string; // the original avatar text record
@@ -64,35 +62,3 @@ export default async function handler(
   }
 }
 
-export const NotFoundError = new Error("Not Found");
-
-// returns address in lower case and ens
-const parseId = async (id: string) => {
-  // is ens
-  if (id.endsWith(".eth")) {
-    const address = await provider.resolveName(id);
-    if (address === null) {
-      throw NotFoundError;
-    }
-    return { address, name: id };
-  }
-
-  // is address
-  if (!isAddress(id)) {
-    throw NotFoundError;
-  }
-  const name = await provider.lookupAddress(id);
-  return { address: id.toLowerCase(), name };
-};
-
-const resolveEns = async (address: string) => {
-  const primaryName = await provider.lookupAddress(address);
-  // NOTE: always use primary name to look up avatar since avatar is bind to ens instead of address
-  const avatar = primaryName
-    ? await provider.getCyberAvatar(primaryName)
-    : null;
-  return {
-    primaryName,
-    avatar,
-  };
-};
