@@ -4,6 +4,9 @@ import { parseId } from "@/utils/parser";
 import { resolveEns } from "@/utils/provider";
 import type { NextApiRequest, NextApiResponse } from "next";
 import axios from "axios";
+import sharp from "sharp";
+
+const maxSize = 4 * 1024 * 1024; // 4mb is max response size for vercel serverless
 
 export default async function handler(
   req: NextApiRequest,
@@ -18,6 +21,10 @@ export default async function handler(
       const url = avatar.url;
       const result = (await axios({ url, responseType: "arraybuffer" }))
         .data as Buffer;
+      const sharped = await sharp(result).webp({ lossless: true }).toBuffer();
+      if (result.length > maxSize) {
+        // TODO: resize
+      }
       res
         .status(200)
         .setHeader(
@@ -25,7 +32,7 @@ export default async function handler(
           `s-maxage=${60 * 60 * 24}, stale-while-revalidate`
         )
         .setHeader("Content-Type", "image/webp")
-        .send(result);
+        .send(sharped);
     } else {
       throw NotFoundError;
     }
