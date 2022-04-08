@@ -8,6 +8,20 @@ import sharp from "sharp";
 
 const maxSize = 4 * 1024 * 1024; // 4mb is max response size for vercel serverless
 
+/**
+ * @swagger
+ * /api/avatar/{id}:
+ *   get:
+ *     tags: [Avatar]
+ *     summary: Get an avatar for this id
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: address or ENS name
+ */
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Buffer>

@@ -22,6 +22,20 @@ type Data = {
   ensAvatar: DataEnsAvatar | null;
 };
 
+/**
+ * @swagger
+ * /api/profile/{id}:
+ *   get:
+ *     tags: [Profile]
+ *     summary: Get the user profile for this id
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: address or ENS name
+ */
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
