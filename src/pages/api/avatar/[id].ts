@@ -21,6 +21,20 @@ const maxSize = 4 * 1024 * 1024; // 4mb is max response size for vercel serverle
  *           type: string
  *         required: true
  *         description: address or ENS name
+ *     responses:
+ *       200:
+ *         description: An avatar in webp format
+ *         headers:
+ *           x-vercel-cache: 
+ *             type: "string"
+ *             description: "vercel serverless cache state. see https://vercel.com/docs/concepts/edge-network/caching#x-vercel-cache"
+ *         content:
+ *           application/webp:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       404:
+ *         description: An avatar is not set for this id
  */
 export default async function handler(
   req: NextApiRequest,

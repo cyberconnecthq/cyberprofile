@@ -4,23 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { parseId } from '@/utils/parser'
 import { NotFoundError } from "@/utils/const";
 import { resolveEns } from "@/utils/provider";
-
-type DataEnsAvatar = {
-  record: string; // the original avatar text record
-  type: "uri:https" | "uri:data" | "uri:ipfs" | "nft:erc721" | "nft:erc1155"; // the type of avatar text record. supports `uri:https`, `uri:data`, `uri:ipfs`, `nft-erc721`, `nft-erc1155`. see https://docs.ens.domains/ens-improvement-proposals/ensip-12-avatar-text-records nftMetadataURL: string | null; // only available if use NFT type record
-  nftMetadata?: string; // the metadata of that NFT
-  nftOwner?: string; // the owner of that NFT (ERC721)
-  nftBalance?: string; // the balance of the address for the NFT (ERC1155)
-  nftOwned?: boolean; // whether he owns that NFT or not
-  url: string; // final resolution
-};
-
-type Data = {
-  address: string;
-  name: string | null;
-  primaryName: string | null; // primary name/reverse record on the address. If user input an address, the name and displayName will always match
-  ensAvatar: DataEnsAvatar | null;
-};
+import { Data, DataEnsAvatar } from "models/profile";
 
 /**
  * @swagger
@@ -35,6 +19,19 @@ type Data = {
  *           type: string
  *         required: true
  *         description: address or ENS name
+ *     responses:
+ *       200:
+ *         description: Success
+ *         headers:
+ *           x-vercel-cache: 
+ *             type: "string"
+ *             description: "vercel serverless cache state. see https://vercel.com/docs/concepts/edge-network/caching#x-vercel-cache"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Profile'
+ *       404:
+ *         description: An avatar is not set for this id
  */
 export default async function handler(
   req: NextApiRequest,
