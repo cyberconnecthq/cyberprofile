@@ -51,10 +51,10 @@ export default async function handler(
       ensAvatar = {
         record: extra.record,
         type: extra.type,
-        nftMetadata: extra.metadata,
-        nftOwner: extra.owner,
-        nftBalance: extra.balance,
-        nftOwned: extra.owned,
+        nftMetadata: extra.metadata ?? null,
+        nftOwner: extra.owner ?? null,
+        nftBalance: extra.balance ?? null,
+        nftOwned: extra.owned ?? null,
         url: avatar.url,
       };
     }
