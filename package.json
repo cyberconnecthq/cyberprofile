@@ -9,15 +9,24 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ceramicnetwork/http-client": "2.0.0-alpha.3",
+    "@ceramicnetwork/stream-tile": "2.0.0-alpha.3",
+    "@ceramicnetwork/blockchain-utils-linking": "2.0.0-alpha.3",
     "@ethersproject/address": "^5.6.0",
     "@ethersproject/providers": "^5.6.2",
+    "key-did-provider-ed25519": "^1.1.0",
+    "dids": "3.0.0-alpha.9",
+    "key-did-resolver": "^1.4.4",
     "axios": "^0.26.1",
+    "ceramic-cacao": "^0.0.17",
+    "ethers": "^5.6.2",
     "next": "12.1.4",
     "next-swagger-doc": "^0.2.1",
     "react": "18.0.0",
     "react-dom": "18.0.0",
     "sharp": "^0.30.3",
-    "swagger-ui-react": "4.8.1"
+    "swagger-ui-react": "4.8.1",
+    "web3modal": "^1.9.6"
   },
   "devDependencies": {
     "@types/node": "17.0.23",
