@@ -1,6 +1,5 @@
 import { useState, useContext, useCallback, createContext, FC } from "react";
 import Web3Modal from "web3modal";
-import { ethers } from "ethers";
 import { Web3Provider } from "@ethersproject/providers";
 
 interface Web3ContextInterface {

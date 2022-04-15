@@ -7,6 +7,7 @@ import { Ed25519Provider } from "key-did-provider-ed25519";
 import * as KeyDidResolver from "key-did-resolver";
 import { DID } from "dids";
 import { EthereumAuthProvider } from "@ceramicnetwork/blockchain-utils-linking";
+import { getCapability, setCapability, getSeed } from "@/utils/store";
 
 const CERAMIC_API_URL = "https://ceramic-clay.3boxlabs.com";
 const ceramic = new CeramicClient(CERAMIC_API_URL);
@@ -25,10 +26,11 @@ export default function Ceramic() {
   const { connectWallet, address, provider } = useWeb3();
   const [loading, setLoading] = useState<boolean>(true);
   const [name, setName] = useState<string>("");
-  const [capability, setCapability] = useState<Cacao>();
+  const [image, setImage] = useState<string>("");
   const [idxTableDocument, setIdxTableDocument] = useState<TileDocument<any>>();
   const [basicProfileDocument, setBasicProfileDocument] =
     useState<TileDocument<any>>();
+  const [cap, setCap] = useState<Cacao>();
 
   const forceUpdate = useForceUpdate();
 
@@ -68,25 +70,21 @@ export default function Ceramic() {
     return doc;
   };
 
-  const getDappDidKey = async () => {
-    // use hard coded seed for example
-    const seed = new Uint8Array([
-      69, 90, 79, 13, 19, 168, 234, 177, 16, 163, 37, 8, 233, 244, 36, 102, 130,
-      190, 102, 10, 239, 51, 191, 199, 40, 13, 2, 63, 94, 119, 183, 225,
-    ]);
+  const getEthereumAuthProvider = async () => {
+    return new EthereumAuthProvider(provider?.provider, address);
+  };
+
+  const getDidKey = async (address: string) => {
+    const seed = await getSeed(address);
 
     const didProvider = new Ed25519Provider(seed);
-    const didKey = new DID({
+    const did = new DID({
       provider: didProvider,
       resolver: KeyDidResolver.getResolver(),
     });
-    await didKey.authenticate();
-    // setDappDidKey(didKey.id);
-    return didKey;
-  };
 
-  const getEthereumAuthProvider = async () => {
-    return new EthereumAuthProvider(provider?.provider, address);
+    await did.authenticate();
+    return did;
   };
 
   const requestCapability = async () => {
@@ -96,14 +94,14 @@ export default function Ceramic() {
         return;
       }
       const eap = await getEthereumAuthProvider();
-      const didKey = await getDappDidKey();
+      const didKey = await getDidKey(address);
 
       const cap = await eap.requestCapability(didKey.id, [
         `${idxTableDocument.id.toUrl()}`,
         `${basicProfileDocument.id.toUrl()}`,
       ]);
 
-      setCapability(cap);
+      setCapability(address, cap);
 
       forceUpdate();
 
@@ -130,7 +128,7 @@ export default function Ceramic() {
     try {
       if (document && capability) {
         console.log("Updating document...");
-        const dappKey = await getDappDidKey();
+        const dappKey = await getDidKey(address);
         const dappKeyWithCap = dappKey.withCapability(capability);
         await dappKeyWithCap.authenticate();
 
@@ -152,21 +150,39 @@ export default function Ceramic() {
     }
   };
 
-  const updateName = async () => {
+  const updateProfile = async () => {
     if (!basicProfileDocument) {
       throw Error("basicProfileDocument is empty");
     }
-    if (!capability) {
+
+    if (!cap) {
       throw Error("capability is empty");
     }
+
+    console.log(cap);
+
     await updateDocument(
       basicProfileDocument,
       {
-        name: name,
+        name: name || basicProfileDocument?.content.name,
+        // image: {
+        //   original: {
+        //     src: image || basicProfileDocument?.content.image,
+        //     mimeType: "image/png",
+        //     width: 500,
+        //     height: 200,
+        //   },
+        // },
       },
-      capability
+      cap
     );
   };
+
+  useEffect(() => {
+    getCapability(address).then((data) => {
+      setCap(data);
+    });
+  }, [address]);
 
   useEffect(() => {
     if (!pkh) return;
@@ -212,7 +228,7 @@ export default function Ceramic() {
                   {JSON.stringify(basicProfileDocument?.content, null, 2)}
                 </div>
               </div>
-              {typeof capability === "undefined" ? (
+              {!cap ? (
                 <div>
                   {!loading && (
                     <button
@@ -225,19 +241,32 @@ export default function Ceramic() {
                 </div>
               ) : (
                 <div className="flex flex-col space-y-4 mt-4">
-                  <input
-                    type="text"
-                    placeholder="bar"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="p-2 rounded-lg"
-                  />
+                  <div>
+                    <span>Name: </span>
+                    <input
+                      type="text"
+                      placeholder="bar"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="p-2 rounded-lg"
+                    />
+                  </div>
+                  {/* <div>
+                    <span>Avatar: </span>
+                    <input
+                      type="text"
+                      placeholder="bar"
+                      value={image}
+                      onChange={(e) => setImage(e.target.value)}
+                      className="p-2 rounded-lg"
+                    />
+                  </div> */}
                   <div className="flex justify-between">
                     <button
                       className="mt-4 px-4 py-2 rounded-lg bg-green-300 hover:bg-green-500"
-                      onClick={updateName}
+                      onClick={updateProfile}
                     >
-                      Update Avatar link in the Document
+                      Update profile
                     </button>
                   </div>
                 </div>
