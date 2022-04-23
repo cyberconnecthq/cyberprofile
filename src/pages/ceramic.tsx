@@ -87,6 +87,7 @@ export default function Ceramic() {
     ceramic.setDID(did);
     const streamID = await manager.createSchema(
       "TestCyberProfileSchema",
+      // @ts-ignore
       cyberProfileSchema
     );
 
