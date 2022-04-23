@@ -1,21 +1,18 @@
 import { useWeb3 } from "../context/web3Context";
 import { CeramicClient } from "@ceramicnetwork/http-client";
-import { TileDocument } from "@ceramicnetwork/stream-tile";
 import { useEffect, useMemo, useState } from "react";
-import type { Cacao } from "ceramic-cacao";
 import { Ed25519Provider } from "key-did-provider-ed25519";
 import * as KeyDidResolver from "key-did-resolver";
 import { DID } from "dids";
-import { EthereumAuthProvider } from "@ceramicnetwork/blockchain-utils-linking";
-import { getCapability, setCapability, getSeed } from "@/utils/store";
+import { getSeed } from "@/utils/store";
+import { ModelManager } from "@glazed/devtools";
+import { CyberProfile, ProfileType } from "cyberprofile";
+import { cyberProfileSchema } from "../utils/const";
 
 const CERAMIC_API_URL = "https://ceramic-clay.3boxlabs.com";
 const ceramic = new CeramicClient(CERAMIC_API_URL);
-const idxTableSchema =
-  "ceramic://k3y52l7qbv1fryjn62sggjh1lpn11c56qfofzmty190d62hwk1cal1c7qc5he54ow";
-const basicProfileSchema =
-  "ceramic://k3y52l7qbv1frxt706gqfzmq6cbqdkptzk8uudaryhlkf6ly9vx21hqu4r6k1jqio";
-const basicProfileDefinition = `kjzl6cwe1jw145cjbeko9kil8g9bxszjhyde21ob8epxuxkaon1izyqsu8wgcic`;
+// @ts-ignore
+const manager = new ModelManager({ ceramic });
 
 function useForceUpdate() {
   const [value, setValue] = useState(0); // integer state
@@ -24,55 +21,51 @@ function useForceUpdate() {
 
 export default function Ceramic() {
   const { connectWallet, address, provider } = useWeb3();
-  const [loading, setLoading] = useState<boolean>(true);
+  const [cyberProfile, setCyberProfile] = useState<CyberProfile>();
+  const [dataLoading, setDataLoading] = useState<boolean>(true);
+  const [updateLoading, setUpdateLoading] = useState<boolean>(false);
   const [name, setName] = useState<string>("");
   const [image, setImage] = useState<string>("");
-  const [idxTableDocument, setIdxTableDocument] = useState<TileDocument<any>>();
-  const [basicProfileDocument, setBasicProfileDocument] =
-    useState<TileDocument<any>>();
-  const [cap, setCap] = useState<Cacao>();
+  const [streamID, setStreamID] = useState<string>("");
+
+  // Profile Fields
+  const [displayName, setDisplayName] = useState<string>("");
+  const [bio, setBio] = useState<string>("");
+  const [type, setType] = useState<ProfileType>("ORGANIZATION");
+  const [handle, setHandle] = useState<string>("");
+  const [profilePicture, setProfilePicture] = useState<string>("");
+  const [backgroundPicture, setBackgroundPicture] = useState<string>("");
+  const [sector, setSector] = useState<string>("");
+  // const [network, setNetwork] = useState<string[]>([]);
+  // const [displayName, setDisplayName] = useState<string>();
 
   const forceUpdate = useForceUpdate();
+
+  useEffect(() => {
+    if (provider?.provider && !cyberProfile) {
+      const cyberProfile = new CyberProfile(provider);
+      cyberProfile.initDocument().finally(() => {
+        const basic = cyberProfile.basicProfileDocument;
+        const cyber = cyberProfile.cyberProfileDocument;
+        setDisplayName(basic?.content.displayName || "");
+        setBio(basic?.content.bio || "");
+        setType(cyber?.content.type || "ORGANIZATION");
+        setHandle(cyber?.content.handle || "");
+        setProfilePicture(cyber?.content.profilePicture || "");
+        setBackgroundPicture(cyber?.content.backgroundPicture || "");
+        setSector(cyber?.content.sector || "");
+
+        setDataLoading(false);
+      });
+      setCyberProfile(cyberProfile);
+    }
+  }, [provider, cyberProfile]);
 
   const pkh = useMemo(() => {
     if (!address) return null;
 
     return `did:pkh:eip155:1:${address}`;
   }, [address]);
-
-  const createDocument = async (did: string, schema: string) => {
-    if (!pkh) {
-      throw Error("Need pkh");
-    }
-    try {
-      console.log("Creating determinstic TileDocument...");
-      const deterministicDocument = await TileDocument.deterministic(ceramic, {
-        deterministic: true,
-        family: "IDX",
-        controllers: [did],
-        schema,
-      });
-
-      console.log("TileDocument created", deterministicDocument);
-      return deterministicDocument;
-    } catch (error) {}
-  };
-
-  const createIDXTable = async (did: string) => {
-    const doc = await createDocument(did, idxTableSchema);
-    setIdxTableDocument(doc);
-    return doc;
-  };
-
-  const createBasicProfile = async (did: string) => {
-    const doc = await createDocument(did, basicProfileSchema);
-    setBasicProfileDocument(doc);
-    return doc;
-  };
-
-  const getEthereumAuthProvider = async () => {
-    return new EthereumAuthProvider(provider?.provider, address);
-  };
 
   const getDidKey = async (address: string) => {
     const seed = await getSeed(address);
@@ -87,192 +80,252 @@ export default function Ceramic() {
     return did;
   };
 
-  const requestCapability = async () => {
-    try {
-      if (!idxTableDocument || !basicProfileDocument) {
-        window.alert("documents hasn't yet been created...");
-        return;
-      }
-      const eap = await getEthereumAuthProvider();
-      const didKey = await getDidKey(address);
-
-      const cap = await eap.requestCapability(didKey.id, [
-        `${idxTableDocument.id.toUrl()}`,
-        `${basicProfileDocument.id.toUrl()}`,
-      ]);
-
-      setCapability(address, cap);
-
-      forceUpdate();
-
-      if (!idxTableDocument.content[basicProfileDefinition]) {
-        console.log("Link idx table and basic profile");
-        await updateDocument(
-          idxTableDocument,
-          {
-            [basicProfileDefinition]: basicProfileDocument.id.toUrl(),
-          },
-          cap
-        );
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const updateDocument = async (
-    document: TileDocument<any>,
-    content: object,
-    capability: Cacao
-  ) => {
-    try {
-      if (document && capability) {
-        console.log("Updating document...");
-        const dappKey = await getDidKey(address);
-        const dappKeyWithCap = dappKey.withCapability(capability);
-        await dappKeyWithCap.authenticate();
-
-        await document.update(
-          content,
-          {},
-          {
-            asDID: dappKeyWithCap,
-            anchor: false,
-            publish: false,
-          }
-        );
-
-        console.log(`Updated document: ${document.id.toUrl()} ...`);
-        forceUpdate();
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const updateProfile = async () => {
-    if (!basicProfileDocument) {
-      throw Error("basicProfileDocument is empty");
-    }
-
-    if (!cap) {
-      throw Error("capability is empty");
-    }
-
-    console.log(cap);
-
-    await updateDocument(
-      basicProfileDocument,
-      {
-        name: name || basicProfileDocument?.content.name,
-        // image: {
-        //   original: {
-        //     src: image || basicProfileDocument?.content.image,
-        //     mimeType: "image/png",
-        //     width: 500,
-        //     height: 200,
-        //   },
-        // },
-      },
-      cap
+  const createSchema = async () => {
+    const did = await getDidKey(address);
+    did.authenticate();
+    console.log(did);
+    ceramic.setDID(did);
+    const streamID = await manager.createSchema(
+      "TestCyberProfileSchema",
+      cyberProfileSchema
     );
+
+    setStreamID(streamID);
+    console.log("create schema: ", streamID);
   };
 
-  useEffect(() => {
-    getCapability(address).then((data) => {
-      setCap(data);
-    });
-  }, [address]);
+  const createDefinition = async () => {
+    const commitID = manager.model.schemas[streamID].version;
+    const did = await getDidKey(address);
+    did.authenticate();
+    ceramic.setDID(did);
 
-  useEffect(() => {
-    if (!pkh) return;
+    const cyberProfileDefinition = {
+      name: "Cyber Profile",
+      schema: `ceramic://${commitID}`,
+      description: "Cyber profile information",
+    };
 
-    const promises = [createIDXTable(pkh), createBasicProfile(pkh)];
+    const res = await manager.createDefinition(
+      "TestCyberProfileDefinition",
+      cyberProfileDefinition
+    );
 
-    Promise.all(promises).then((data) => {
-      setLoading(false);
-    });
-  }, [pkh]);
+    console.log("create definition: ", res);
+  };
+
+  const publishSchema = async () => {
+    const publishedModel = await manager.deploy();
+    console.log("publish: ", publishedModel);
+    console.log("publish: ", publishedModel.schemas.toString());
+  };
+
+  const testUpdateCyberProfile = async () => {
+    if (cyberProfile) {
+      setUpdateLoading(true);
+      try {
+        await cyberProfile.updateProfile({
+          displayName,
+          bio,
+          type,
+          handle,
+          profilePicture,
+          backgroundPicture,
+          sector,
+        });
+      } catch (e) {
+        console.log("Upload Error: ", e);
+      } finally {
+        setUpdateLoading(false);
+      }
+    } else {
+      console.log("cyberProfile is empty");
+    }
+
+    console.log(cyberProfile?.basicProfileDocument?.id.toString());
+    console.log(cyberProfile?.cyberProfileDocument?.id.toString());
+
+    forceUpdate();
+  };
 
   return (
-    <div
-      style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
-    >
+    <div className="flex flex-col justify-center items-center p-4 bg-gray-100">
       <h1>Ceramic Demo</h1>
+      {/* <div>
+        <button
+          className="mt-4 px-4 py-2 rounded-lg bg-blue-500 text-white"
+          onClick={createSchema}
+        >
+          Create Schema
+        </button>
+      </div>
+      <div>
+        <button
+          className="mt-4 px-4 py-2 rounded-lg bg-blue-500 text-white"
+          onClick={createDefinition}
+        >
+          Create Definition
+        </button>
+      </div>
+      <div>
+        <button
+          className="mt-4 px-4 py-2 rounded-lg bg-blue-500 text-white"
+          onClick={publishSchema}
+        >
+          deploy Schema
+        </button>
+      </div>
+      <div>----------------------------------------------------------</div> */}
       {!address ? (
         <div>
-          <button onClick={connectWallet}>Connect Wallet</button>
+          <button
+            className="mt-4 px-4 py-2 rounded-lg bg-green-300 hover:bg-green-500"
+            onClick={connectWallet}
+          >
+            Connect Wallet
+          </button>
         </div>
       ) : (
         <div>
           <div>Address: {address}</div>
-          {loading ? (
-            <div>Loading</div>
-          ) : (
-            <div>
-              <div className="flex flex-col space-y-4">
-                <div> documents has been created.</div>
-                <div>
-                  Stream is controlled by <strong>{pkh}</strong>
-                </div>
-                <div>IDX Table Stream: {idxTableDocument?.id.toUrl()}</div>
-                <div className="bg-gray-700 rounded-lg p-4 text-white">
-                  IDX Table Content:{" "}
-                  {JSON.stringify(idxTableDocument?.content, null, 2)}
-                </div>
-                <div>
-                  Basic Profile Stream: {basicProfileDocument?.id.toUrl()}
-                </div>
-                <div className="bg-gray-700 rounded-lg p-4 text-white">
-                  Basic Profile Content:{" "}
-                  {JSON.stringify(basicProfileDocument?.content, null, 2)}
-                </div>
+          <div>
+            {dataLoading ? (
+              <div className="flex justify-center items-center">
+                <img src="/loading.svg" className="animate-spin w-16" />
               </div>
-              {!cap ? (
+            ) : (
+              <div className="flex flex-col space-y-4 mt-4">
                 <div>
-                  {!loading && (
-                    <button
-                      className="mt-4 px-4 py-2 rounded-lg bg-blue-500 text-white"
-                      onClick={requestCapability}
-                    >
-                      Authorize dApp
-                    </button>
-                  )}
+                  <span>displayName: </span>
+                  <input
+                    type="text"
+                    placeholder="bar"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    className="p-2 rounded-lg"
+                  />
                 </div>
-              ) : (
-                <div className="flex flex-col space-y-4 mt-4">
-                  <div>
-                    <span>Name: </span>
-                    <input
-                      type="text"
-                      placeholder="bar"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="p-2 rounded-lg"
-                    />
-                  </div>
-                  {/* <div>
-                    <span>Avatar: </span>
-                    <input
-                      type="text"
-                      placeholder="bar"
-                      value={image}
-                      onChange={(e) => setImage(e.target.value)}
-                      className="p-2 rounded-lg"
-                    />
-                  </div> */}
-                  <div className="flex justify-between">
-                    <button
-                      className="mt-4 px-4 py-2 rounded-lg bg-green-300 hover:bg-green-500"
-                      onClick={updateProfile}
-                    >
-                      Update profile
-                    </button>
-                  </div>
+                <div>
+                  <span>bio: </span>
+                  <input
+                    type="text"
+                    placeholder="bar"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    className="p-2 rounded-lg"
+                  />
                 </div>
-              )}
-            </div>
-          )}
+                <div>
+                  <span>type: </span>
+                  <select
+                    value={type}
+                    onChange={(e) => setType(e.target.value as ProfileType)}
+                  >
+                    <option value="ORGANIZATION">ORGANIZATION</option>
+                    <option value="PERSONAL">PERSONAL</option>
+                  </select>
+                </div>
+                <div>
+                  <span>handle: </span>
+                  <input
+                    type="text"
+                    placeholder="bar"
+                    value={handle}
+                    onChange={(e) => setHandle(e.target.value)}
+                    className="p-2 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <span>profilePicture: </span>
+                  <input
+                    type="text"
+                    placeholder="bar"
+                    value={profilePicture}
+                    onChange={(e) => setProfilePicture(e.target.value)}
+                    className="p-2 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <span>backgroundPicture: </span>
+                  <input
+                    type="text"
+                    placeholder="bar"
+                    value={backgroundPicture}
+                    onChange={(e) => setBackgroundPicture(e.target.value)}
+                    className="p-2 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <span>sector: </span>
+                  <input
+                    type="text"
+                    placeholder="bar"
+                    value={sector}
+                    onChange={(e) => setSector(e.target.value)}
+                    className="p-2 rounded-lg"
+                  />
+                </div>
+                <div className="flex justify-between">
+                  <button
+                    className="mt-4 px-4 py-2 rounded-lg bg-gray-900 hover:bg-gray-600 text-white"
+                    onClick={testUpdateCyberProfile}
+                  >
+                    {updateLoading ? (
+                      <svg
+                        role="status"
+                        className="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+                        viewBox="0 0 100 101"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                          fill="currentColor"
+                        ></path>
+                        <path
+                          d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                          fill="currentFill"
+                        ></path>
+                      </svg>
+                    ) : (
+                      "Update profile"
+                    )}
+                  </button>
+                </div>
+                {
+                  <div className="flex flex-col">
+                    {cyberProfile?.basicProfileDocument && (
+                      <div>
+                        Check your basic profile:{" "}
+                        <a
+                          href={`https://documint.net/${cyberProfile.basicProfileDocument.id.toString()}`}
+                          className="underline"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {cyberProfile.basicProfileDocument.id.toString()}
+                        </a>
+                      </div>
+                    )}
+                    {cyberProfile?.cyberProfileDocument && (
+                      <div>
+                        Check your cyber profile:{" "}
+                        <a
+                          href={`https://documint.net/${cyberProfile.cyberProfileDocument.id.toString()}`}
+                          className="underline"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {" "}
+                          {cyberProfile.cyberProfileDocument.id.toString()}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                }
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
