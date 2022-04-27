@@ -1,6 +1,6 @@
 import { useWeb3 } from "../context/web3Context";
 import { useEffect, useState } from "react";
-import { CyberProfile } from "@/utils/cyberProfile";
+import { CyberProfile } from "../utils/cyberProfile";
 
 function useForceUpdate() {
   const [value, setValue] = useState(0); // integer state
@@ -28,7 +28,7 @@ export default function Ceramic() {
         setName(profile?.name);
         setDescription(profile?.description);
         setUrl(profile?.url);
-        setImage(profile?.image.original.src);
+        setImage(profile?.image?.original.src);
 
         setDataLoading(false);
       });
