@@ -6,7 +6,7 @@ Resolve avatar and profile for web3 addresses on backend. Supports ENS and Ceram
 ## Usage
 
 ### Hosted
-This is hosted on `https://cyberprofile.vercel.app/`. A SwaggerUI is available there.
+This is hosted [here](https://cyberprofile.vercel.app/). A SwaggerUI is available there.
 
 Two main paths
 ```

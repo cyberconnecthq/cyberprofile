@@ -1,7 +1,12 @@
 import Head from 'next/head';
+import dynamic from 'next/dynamic';
 
-import SwaggerUI from 'swagger-ui-react';
 import 'swagger-ui-react/swagger-ui.css';
+
+// @ts-ignore
+const SwaggerUI = dynamic<{ url: string }>(import('swagger-ui-react'), {
+  ssr: false,
+});
 
 export default function Home() {
   return (
