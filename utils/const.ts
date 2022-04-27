@@ -1,7 +1,7 @@
 export const version = "0.1.0";
 export const swaggerSpec = {
   apiFolder: "pages/api",
-  schemaFolders: ["models"],
+  schemaFolders: ["pages/api"],
   definition: {
     openapi: "3.0.0",
     info: {
