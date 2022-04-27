@@ -1,15 +1,16 @@
 # CyberProfile
+![Vercel](https://therealsujitk-vercel-badge.vercel.app/?app=cyberprofile)
 Resolve avatar and profile for web3 addresses on backend. Supports ENS and Ceramic.
 
 ## Usage
-### Local
-1. Start local server
-```
-yarn run dev
-```
-2. Ping server with
-```
-localhost:3000/api/wearehiring.eth
-```
+
 ### Hosted
-TBD
+This is hosted on `https://cyberprofile.vercel.app/`. A SwaggerUI is available there.
+
+Two main paths
+```
+https://cyberprofile.vercel.app/api/profile/pisofa.eth
+```
+```
+https://cyberprofile.vercel.app/api/avatar/pisofa.eth?s=500
+```
