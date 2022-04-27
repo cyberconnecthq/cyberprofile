@@ -1458,7 +1458,7 @@ cborg@^1.6.0:
 
 ceramic-cacao@^1.0.0:
   version "1.0.0"
-  resolved "https://registry.npmjs.org/ceramic-cacao/-/ceramic-cacao-1.0.0.tgz"
+  resolved "https://registry.yarnpkg.com/ceramic-cacao/-/ceramic-cacao-1.0.0.tgz#5c48243b79315af5d3f62ab5796a206eb578232d"
   integrity sha512-OtqbMCPjDED67Jjyoqdwec0vO2Q8NR6DqdKqyyI4JAr+0i+X75qH9VUFtOmDgbtEUiTfDaXLFN5CDK6Kh3nsJQ==
   dependencies:
     "@ethersproject/wallet" "^5.5.0"
@@ -1692,19 +1692,6 @@ csstype@^3.0.2:
   version "3.0.11"
   resolved "https://registry.npmjs.org/csstype/-/csstype-3.0.11.tgz"
   integrity sha512-sa6P2wJ+CAbgyy4KFssIb/JNMLxFvKF1pCYCSXS8ZMuqZnMsrxqI2E5sPyoTpxoPU/gVZMzr2zjOfg8GIZOMsw==
-
-"cyberprofile@file:cyberlab-cyber-profile-0.0.17.tgz":
-  version "0.0.17"
-  resolved "file:cyberlab-cyber-profile-0.0.17.tgz#282bdf25738f106af978294bc1189820794f2246"
-  dependencies:
-    "@ceramicnetwork/blockchain-utils-linking" "^2.0.0"
-    "@ceramicnetwork/http-client" "^2.0.0"
-    "@ceramicnetwork/stream-tile" "^2.0.0"
-    ceramic-cacao "^1.0.0"
-    dids "^3.0.0"
-    idb "^7.0.1"
-    key-did-provider-ed25519 "^2.0.0"
-    key-did-resolver "^2.0.0"
 
 dag-jose-utils@^2.0.0:
   version "2.0.0"

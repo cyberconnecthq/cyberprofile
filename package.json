@@ -19,7 +19,6 @@
     "@glazed/types": "^0.2.0",
     "axios": "^0.26.1",
     "ceramic-cacao": "^1.0.0",
-    "cyberprofile": "file:cyberlab-cyber-profile-0.0.17.tgz",
     "dids": "^3.0.0",
     "ethers": "^5.6.2",
     "idb": "^7.0.1",

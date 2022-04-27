@@ -1,18 +1,6 @@
 import { useWeb3 } from "../context/web3Context";
-import { CeramicClient } from "@ceramicnetwork/http-client";
-import { useEffect, useMemo, useState } from "react";
-import { Ed25519Provider } from "key-did-provider-ed25519";
-import * as KeyDidResolver from "key-did-resolver";
-import { DID } from "dids";
-import { getSeed } from "@/utils/store";
-import { ModelManager } from "@glazed/devtools";
-import { CyberProfile, ProfileType } from "cyberprofile";
-import { cyberProfileSchema } from "../utils/const";
-
-const CERAMIC_API_URL = "https://ceramic-clay.3boxlabs.com";
-const ceramic = new CeramicClient(CERAMIC_API_URL);
-// @ts-ignore
-const manager = new ModelManager({ ceramic });
+import { useEffect, useState } from "react";
+import { CyberProfile } from "@/utils/cyberProfile";
 
 function useForceUpdate() {
   const [value, setValue] = useState(0); // integer state
@@ -24,36 +12,23 @@ export default function Ceramic() {
   const [cyberProfile, setCyberProfile] = useState<CyberProfile>();
   const [dataLoading, setDataLoading] = useState<boolean>(true);
   const [updateLoading, setUpdateLoading] = useState<boolean>(false);
-  const [name, setName] = useState<string>("");
-  const [image, setImage] = useState<string>("");
-  const [streamID, setStreamID] = useState<string>("");
 
   // Profile Fields
-  const [displayName, setDisplayName] = useState<string>("");
-  const [bio, setBio] = useState<string>("");
-  const [type, setType] = useState<ProfileType>("ORGANIZATION");
-  const [handle, setHandle] = useState<string>("");
-  const [profilePicture, setProfilePicture] = useState<string>("");
-  const [backgroundPicture, setBackgroundPicture] = useState<string>("");
-  const [sector, setSector] = useState<string>("");
-  // const [network, setNetwork] = useState<string[]>([]);
-  // const [displayName, setDisplayName] = useState<string>();
+  const [name, setName] = useState<string>("");
+  const [description, setDescription] = useState<string>();
+  const [url, setUrl] = useState<string>();
+  const [image, setImage] = useState<string>();
 
   const forceUpdate = useForceUpdate();
 
   useEffect(() => {
     if (provider?.provider && !cyberProfile) {
       const cyberProfile = new CyberProfile(provider);
-      cyberProfile.initDocument().finally(() => {
-        const basic = cyberProfile.basicProfileDocument;
-        const cyber = cyberProfile.cyberProfileDocument;
-        setDisplayName(basic?.content.displayName || "");
-        setBio(basic?.content.bio || "");
-        setType(cyber?.content.type || "ORGANIZATION");
-        setHandle(cyber?.content.handle || "");
-        setProfilePicture(cyber?.content.profilePicture || "");
-        setBackgroundPicture(cyber?.content.backgroundPicture || "");
-        setSector(cyber?.content.sector || "");
+      cyberProfile.getProfile().then((profile) => {
+        setName(profile?.name);
+        setDescription(profile?.description);
+        setUrl(profile?.url);
+        setImage(profile?.image.original.src);
 
         setDataLoading(false);
       });
@@ -61,79 +36,17 @@ export default function Ceramic() {
     }
   }, [provider, cyberProfile]);
 
-  const pkh = useMemo(() => {
-    if (!address) return null;
-
-    return `did:pkh:eip155:1:${address}`;
-  }, [address]);
-
-  const getDidKey = async (address: string) => {
-    const seed = await getSeed(address);
-
-    const didProvider = new Ed25519Provider(seed);
-    const did = new DID({
-      provider: didProvider,
-      resolver: KeyDidResolver.getResolver(),
-    });
-
-    await did.authenticate();
-    return did;
-  };
-
-  const createSchema = async () => {
-    const did = await getDidKey(address);
-    did.authenticate();
-    console.log(did);
-    ceramic.setDID(did);
-    const streamID = await manager.createSchema(
-      "TestCyberProfileSchema",
-      // @ts-ignore
-      cyberProfileSchema
-    );
-
-    setStreamID(streamID);
-    console.log("create schema: ", streamID);
-  };
-
-  const createDefinition = async () => {
-    const commitID = manager.model.schemas[streamID].version;
-    const did = await getDidKey(address);
-    did.authenticate();
-    ceramic.setDID(did);
-
-    const cyberProfileDefinition = {
-      name: "Cyber Profile",
-      schema: `ceramic://${commitID}`,
-      description: "Cyber profile information",
-    };
-
-    const res = await manager.createDefinition(
-      "TestCyberProfileDefinition",
-      cyberProfileDefinition
-    );
-
-    console.log("create definition: ", res);
-  };
-
-  const publishSchema = async () => {
-    const publishedModel = await manager.deploy();
-    console.log("publish: ", publishedModel);
-    console.log("publish: ", publishedModel.schemas.toString());
-  };
-
-  const testUpdateCyberProfile = async () => {
+  const updateProfile = async () => {
     if (cyberProfile) {
       setUpdateLoading(true);
       try {
         await cyberProfile.updateProfile({
-          displayName,
-          bio,
-          type,
-          handle,
-          profilePicture,
-          backgroundPicture,
-          sector,
+          name,
+          description,
+          url,
+          image,
         });
+        console.log("Upload successfully");
       } catch (e) {
         console.log("Upload Error: ", e);
       } finally {
@@ -143,40 +56,12 @@ export default function Ceramic() {
       console.log("cyberProfile is empty");
     }
 
-    console.log(cyberProfile?.basicProfileDocument?.id.toString());
-    console.log(cyberProfile?.cyberProfileDocument?.id.toString());
-
     forceUpdate();
   };
 
   return (
     <div className="flex flex-col justify-center items-center p-4 bg-gray-100">
-      <h1>Ceramic Demo</h1>
-      {/* <div>
-        <button
-          className="mt-4 px-4 py-2 rounded-lg bg-blue-500 text-white"
-          onClick={createSchema}
-        >
-          Create Schema
-        </button>
-      </div>
-      <div>
-        <button
-          className="mt-4 px-4 py-2 rounded-lg bg-blue-500 text-white"
-          onClick={createDefinition}
-        >
-          Create Definition
-        </button>
-      </div>
-      <div>
-        <button
-          className="mt-4 px-4 py-2 rounded-lg bg-blue-500 text-white"
-          onClick={publishSchema}
-        >
-          deploy Schema
-        </button>
-      </div>
-      <div>----------------------------------------------------------</div> */}
+      <h1 className="text-3xl mb-4 font-bold">Cyber Profile</h1>
       {!address ? (
         <div>
           <button
@@ -197,79 +82,49 @@ export default function Ceramic() {
             ) : (
               <div className="flex flex-col space-y-4 mt-4">
                 <div>
-                  <span>displayName: </span>
+                  <span>Name: </span>
                   <input
                     type="text"
                     placeholder="bar"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    className="p-2 rounded-lg"
+                    value={name ?? ""}
+                    onChange={(e) => setName(e.target.value)}
+                    className="p-2 rounded-lg w-full"
                   />
                 </div>
                 <div>
-                  <span>bio: </span>
+                  <span>Description: </span>
                   <input
                     type="text"
                     placeholder="bar"
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    className="p-2 rounded-lg"
+                    value={description ?? ""}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="p-2 rounded-lg w-full"
                   />
                 </div>
                 <div>
-                  <span>type: </span>
-                  <select
-                    value={type}
-                    onChange={(e) => setType(e.target.value as ProfileType)}
-                  >
-                    <option value="ORGANIZATION">ORGANIZATION</option>
-                    <option value="PERSONAL">PERSONAL</option>
-                  </select>
-                </div>
-                <div>
-                  <span>handle: </span>
+                  <span>Url: </span>
                   <input
                     type="text"
                     placeholder="bar"
-                    value={handle}
-                    onChange={(e) => setHandle(e.target.value)}
-                    className="p-2 rounded-lg"
+                    value={url ?? ""}
+                    onChange={(e) => setUrl(e.target.value)}
+                    className="p-2 rounded-lg w-full"
                   />
                 </div>
                 <div>
-                  <span>profilePicture: </span>
+                  <span>Image URL: </span>
                   <input
                     type="text"
                     placeholder="bar"
-                    value={profilePicture}
-                    onChange={(e) => setProfilePicture(e.target.value)}
-                    className="p-2 rounded-lg"
-                  />
-                </div>
-                <div>
-                  <span>backgroundPicture: </span>
-                  <input
-                    type="text"
-                    placeholder="bar"
-                    value={backgroundPicture}
-                    onChange={(e) => setBackgroundPicture(e.target.value)}
-                    className="p-2 rounded-lg"
-                  />
-                </div>
-                <div>
-                  <span>sector: </span>
-                  <input
-                    type="text"
-                    placeholder="bar"
-                    value={sector}
-                    onChange={(e) => setSector(e.target.value)}
-                    className="p-2 rounded-lg"
+                    value={image ?? ""}
+                    onChange={(e) => setImage(e.target.value)}
+                    className="p-2 rounded-lg w-full"
                   />
                 </div>
                 <div className="flex justify-between">
                   <button
                     className="mt-4 px-4 py-2 rounded-lg bg-gray-900 hover:bg-gray-600 text-white"
-                    onClick={testUpdateCyberProfile}
+                    onClick={updateProfile}
                   >
                     {updateLoading ? (
                       <svg
@@ -297,7 +152,7 @@ export default function Ceramic() {
                   <div className="flex flex-col">
                     {cyberProfile?.basicProfileDocument && (
                       <div>
-                        Check your basic profile:{" "}
+                        Check your profile:{" "}
                         <a
                           href={`https://documint.net/${cyberProfile.basicProfileDocument.id.toString()}`}
                           className="underline"
@@ -305,20 +160,6 @@ export default function Ceramic() {
                           rel="noreferrer"
                         >
                           {cyberProfile.basicProfileDocument.id.toString()}
-                        </a>
-                      </div>
-                    )}
-                    {cyberProfile?.cyberProfileDocument && (
-                      <div>
-                        Check your cyber profile:{" "}
-                        <a
-                          href={`https://documint.net/${cyberProfile.cyberProfileDocument.id.toString()}`}
-                          className="underline"
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {" "}
-                          {cyberProfile.cyberProfileDocument.id.toString()}
                         </a>
                       </div>
                     )}

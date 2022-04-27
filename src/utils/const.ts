@@ -13,102 +13,17 @@ export const swaggerSpec = {
 
 export const NotFoundError = new Error("Not Found");
 
-export const cyberProfileSchema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  title: "CyberProfileSchema",
-  type: "object",
-  properties: {
-    handle: {
-      type: "string",
-    },
-    type: {
-      type: "string",
-      pattern: "(PERSONAL|ORGANIZATION)",
-    },
-    profilePicture: {
-      type: "string",
-    },
-    backgroundPicture: {
-      type: "string",
-    },
-    sector: {
-      type: "string",
-    },
-    network: {
-      type: "array",
-      items: {
-        type: "string",
-      },
-    },
-    blocks: {
-      type: "array",
-      items: {
-        $ref: "#/definitions/block",
-      },
-    },
+export const CERAMIC_API_URL = "https://ceramic-clay.3boxlabs.com";
+
+export const model = {
+  schemas: {
+    idxTable:
+      "ceramic://k3y52l7qbv1fryjn62sggjh1lpn11c56qfofzmty190d62hwk1cal1c7qc5he54ow",
+    basicProfile:
+      "ceramic://k3y52l7qbv1frxt706gqfzmq6cbqdkptzk8uudaryhlkf6ly9vx21hqu4r6k1jqio",
   },
   definitions: {
-    block: {
-      type: "object",
-      properties: {
-        displayName: {
-          type: "string",
-        },
-        type: {
-          $ref: "#/definitions/blockType",
-        },
-        content: {
-          type: "object",
-          properties: {
-            link: {
-              $ref: "#/definitions/link",
-            },
-            links: {
-              type: "array",
-              items: {
-                $ref: "#/definitions/link",
-              },
-            },
-            members: {
-              type: "array",
-              items: {
-                $ref: "#/definitions/member",
-              },
-            },
-          },
-        },
-      },
-    },
-    blockType: {
-      type: "string",
-      pattern: "(LINK|MIRROR|MEDIUM|TWEET|TEAM|BACKER)",
-    },
-    link: {
-      type: "string",
-    },
-    member: {
-      type: "object",
-      properties: {
-        address: {
-          type: "string",
-        },
-        name: {
-          type: "string",
-        },
-        title: {
-          type: "string",
-        },
-        avatar: {
-          type: "string",
-        },
-      },
-    },
+    basicProfile:
+      "kjzl6cwe1jw145cjbeko9kil8g9bxszjhyde21ob8epxuxkaon1izyqsu8wgcic",
   },
-};
-
-export const cyberProfileDefinition = {
-  name: "Cyber Profile",
-  schema:
-    "ceramic://kjzl6cwe1jw146elfioarvmv6zspy3pkh986ex082bogtuallfmgquik74i3fyr",
-  description: "Cyber profile information",
 };
