@@ -1,5 +1,6 @@
 # CyberProfile
 ![Vercel](https://therealsujitk-vercel-badge.vercel.app/?app=cyberprofile)
+
 Resolve avatar and profile for web3 addresses on backend. Supports ENS and Ceramic.
 
 ## Usage
