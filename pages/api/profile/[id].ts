@@ -3,7 +3,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { parseId } from '@/utils/parser'
 import { NotFoundError } from "@/utils/const";
-import { resolveEns } from "@/utils/provider";
+import { provider, resolveEns } from "@/utils/provider";
+import { CyberProfile } from "@/utils/cyberProfile";
 
 /**
  * @swagger
@@ -58,11 +59,19 @@ import { resolveEns } from "@/utils/provider";
   url: string | null; // final resolution
 };
 
+export type CeramicData = {
+  name: string | null;
+  description: string | null;
+  url: string | null;
+  imageUrl: string | null; // ipfs gateway url for image
+}
+
 export type Data = {
   address: string;
   name: string | null; 
   primaryName: string | null; // primary name/reverse record on the address. If user input an address, the name and displayName will always match
   ensAvatar: DataEnsAvatar | null;
+  ceramic: CeramicData | null;
 };
 
 
@@ -99,6 +108,7 @@ export default async function handler(
 ) {
   const queryId = req.query.id;
   const id = Array.isArray(queryId) ? queryId[0] : queryId;
+  const ceramicEnabled = req.query.ceramic === "true"
 
   try {
     const { address, name } = await parseId(id);
@@ -119,13 +129,18 @@ export default async function handler(
       };
     }
 
+    let ceramicData: CeramicData | null = null
+    if (ceramicEnabled) {
+      ceramicData = await resolveCeramic(address)
+    }
+
     res
       .status(200)
       .setHeader(
         "Cache-Control",
         `s-maxage=${60 * 60 * 24}, stale-while-revalidate`
       )
-      .json({ address, name, primaryName, ensAvatar });
+      .json({ address, name, primaryName, ensAvatar, ceramic: ceramicData });
   } catch (e) {
     if (e === NotFoundError) {
       res.status(404).end();
@@ -133,3 +148,9 @@ export default async function handler(
   }
 }
 
+const resolveCeramic = async (address: string) => {
+  const cp = new CyberProfile({provider: provider})
+  const profile = await cp.getProfile()
+  console.log(profile)
+  return null
+}
