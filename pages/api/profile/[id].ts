@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { parseId } from '@/utils/parser'
 import { NotFoundError } from "@/utils/const";
 import { resolveEns } from "@/utils/provider";
-import { Data, DataEnsAvatar } from "models/profile";
+import { Data, DataEnsAvatar } from "../../../models/profile";
 
 /**
  * @swagger
