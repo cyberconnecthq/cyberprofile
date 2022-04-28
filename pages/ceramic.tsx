@@ -12,6 +12,8 @@ export default function Ceramic() {
   const [cyberProfile, setCyberProfile] = useState<CyberProfile>();
   const [dataLoading, setDataLoading] = useState<boolean>(true);
   const [updateLoading, setUpdateLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+  const [success, setSuccess] = useState<boolean>(false);
 
   // Profile Fields
   const [name, setName] = useState<string>("");
@@ -37,6 +39,8 @@ export default function Ceramic() {
   }, [provider, cyberProfile]);
 
   const updateProfile = async () => {
+    setError("");
+    setSuccess(false);
     if (cyberProfile) {
       setUpdateLoading(true);
       try {
@@ -47,8 +51,10 @@ export default function Ceramic() {
           image,
         });
         console.log("Upload successfully");
-      } catch (e) {
+        setSuccess(true);
+      } catch (e: any) {
         console.log("Upload Error: ", e);
+        setError(e.message);
       } finally {
         setUpdateLoading(false);
       }
@@ -72,7 +78,7 @@ export default function Ceramic() {
           </button>
         </div>
       ) : (
-        <div>
+        <div className="w-3/5">
           <div>Address: {address}</div>
           <div>
             {dataLoading ? (
@@ -120,6 +126,20 @@ export default function Ceramic() {
                     onChange={(e) => setImage(e.target.value)}
                     className="p-2 rounded-lg w-full"
                   />
+                  <div className="text-sm text-gray-500">
+                    <div className="my-1">{`The image url must match pattern \"^ipfs://.+\""`}</div>
+                    <div>
+                      E.g.{" "}
+                      <a
+                        href="https://ipfs.io/ipfs/QmUpvVydVRzS95yzG1sDCPTVNeVMafkgDQpbRXXDNXq3bP"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline"
+                      >
+                        ipfs://QmUpvVydVRzS95yzG1sDCPTVNeVMafkgDQpbRXXDNXq3bP
+                      </a>
+                    </div>
+                  </div>
                 </div>
                 <div className="flex justify-between">
                   <button
@@ -148,6 +168,10 @@ export default function Ceramic() {
                     )}
                   </button>
                 </div>
+                {error && <div className="text-rose-500">{error}</div>}
+                {success && (
+                  <div className="text-green-500">Upload Successfully</div>
+                )}
                 {
                   <div className="flex flex-col">
                     {cyberProfile?.basicProfileDocument && (

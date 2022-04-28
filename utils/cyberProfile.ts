@@ -40,21 +40,17 @@ export class CyberProfile {
   }
 
   async createDocument(did: string, schema: string) {
-    try {
-      const deterministicDocument = await TileDocument.deterministic(
-        this.ceramicClient,
-        {
-          deterministic: true,
-          family: "IDX",
-          controllers: [did],
-          schema,
-        }
-      );
+    const deterministicDocument = await TileDocument.deterministic(
+      this.ceramicClient,
+      {
+        deterministic: true,
+        family: "IDX",
+        controllers: [did],
+        schema,
+      }
+    );
 
-      return deterministicDocument;
-    } catch (error) {
-      console.log(error);
-    }
+    return deterministicDocument;
   }
 
   async createIDXTable(did: string) {
@@ -106,61 +102,52 @@ export class CyberProfile {
   }
 
   async requestCapability() {
-    try {
-      const address = await this.getAddress();
-      if (!this.idxTableDocument || !this.basicProfileDocument) {
-        window.alert("documents hasn't yet been created...");
-        return;
-      }
-      const eap = await this.getEthereumAuthProvider();
-      const didKey = await this.getDidKey(address);
-
-      const cap = await eap.requestCapability(didKey.id, [
-        `${this.idxTableDocument.id.toUrl()}`,
-        `${this.basicProfileDocument.id.toUrl()}`,
-      ]);
-
-      await setCapability(address, cap);
-
-      if (!this.idxTableDocument.content[model.definitions.basicProfile]) {
-        await this.updateDocument(this.idxTableDocument, {
-          [model.definitions.basicProfile]:
-            this.basicProfileDocument.id.toUrl(),
-        });
-      }
-
-      return cap;
-    } catch (error) {
-      console.error(error);
+    const address = await this.getAddress();
+    if (!this.idxTableDocument || !this.basicProfileDocument) {
+      window.alert("documents hasn't yet been created...");
+      return;
     }
+    const eap = await this.getEthereumAuthProvider();
+    const didKey = await this.getDidKey(address);
+
+    const cap = await eap.requestCapability(didKey.id, [
+      `${this.idxTableDocument.id.toUrl()}`,
+      `${this.basicProfileDocument.id.toUrl()}`,
+    ]);
+
+    await setCapability(address, cap);
+
+    if (!this.idxTableDocument.content[model.definitions.basicProfile]) {
+      await this.updateDocument(this.idxTableDocument, {
+        [model.definitions.basicProfile]: this.basicProfileDocument.id.toUrl(),
+      });
+    }
+
+    return cap;
   }
 
   async updateDocument(
     document: TileDocument<any> | undefined,
     content: object
   ) {
-    try {
-      const address = await this.getAddress();
-      const capability = await this.getCapability();
-      if (document && capability) {
-        const dappKey = await this.getDidKey(address);
-        const dappKeyWithCap = dappKey.withCapability(capability);
-        await dappKeyWithCap.authenticate();
+    const address = await this.getAddress();
+    const capability = await this.getCapability();
+    if (document && capability) {
+      const dappKey = await this.getDidKey(address);
+      const dappKeyWithCap = dappKey.withCapability(capability);
+      await dappKeyWithCap.authenticate();
 
-        await document.update(
-          content,
-          {},
-          {
-            asDID: dappKeyWithCap,
-            anchor: false,
-            publish: false,
-          }
-        );
-      } else {
-        throw Error("document is empty");
-      }
-    } catch (error) {
-      console.error(error);
+      await document.update(
+        content,
+        {},
+        {
+          asDID: dappKeyWithCap,
+          anchor: false,
+          publish: false,
+        }
+      );
+    } else {
+      throw Error("document is empty");
     }
   }
 
@@ -185,13 +172,6 @@ export class CyberProfile {
     } else {
       pro = { ...profile };
     }
-
-    // content.name = name || content.name;
-    // content.description = description || content.description;
-    // content.url = url || content.url;
-    // content.image = image || content.image;
-
-    //  await this.updateDocument(this.basicProfileDocument, content);
 
     await this.updateDocument(this.basicProfileDocument, {
       ...content,
