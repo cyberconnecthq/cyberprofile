@@ -40,6 +40,7 @@ export class CyberProfile {
   }
 
   async createDocument(did: string, schema: string) {
+    console.log('+++', did, schema, this.ceramicClient);
     try {
       const deterministicDocument = await TileDocument.deterministic(
         this.ceramicClient,
@@ -51,6 +52,7 @@ export class CyberProfile {
         }
       );
 
+      console.log('deter', deterministicDocument.content, deterministicDocument.id.toString())
       return deterministicDocument;
     } catch (error) {
       console.log(error);
@@ -67,10 +69,13 @@ export class CyberProfile {
   }
 
   async createBasicProfile(did: string) {
+    console.log('did', did)
     if (this.basicProfileDocument) {
+      console.log('should not')
       return this.basicProfileDocument;
     }
     const doc = await this.createDocument(did, model.schemas.basicProfile);
+    console.log('a', doc?.content)
     this.basicProfileDocument = doc;
     return doc;
   }
@@ -206,6 +211,7 @@ export class CyberProfile {
 
   async getProfile() {
     await this.initDocument();
+    console.log('here')
     return this.basicProfileDocument?.content || {};
   }
 }

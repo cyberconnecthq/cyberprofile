@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { parseId } from '@/utils/parser'
 import { NotFoundError } from "@/utils/const";
 import { provider, resolveEns } from "@/utils/provider";
-import { CyberProfile } from "@/utils/cyberProfile";
+import { CeramicResolver } from "@/utils/ceramicResolver";
 
 /**
  * @swagger
@@ -113,6 +113,12 @@ export default async function handler(
   try {
     const { address, name } = await parseId(id);
 
+    // FIXME: move back down
+    let ceramicData: CeramicData | null = null
+    if (ceramicEnabled) {
+      ceramicData = await resolveCeramic(address)
+    }
+    
     const { primaryName, avatar } = await resolveEns(address);
 
     let ensAvatar: DataEnsAvatar | null = null;
@@ -129,10 +135,6 @@ export default async function handler(
       };
     }
 
-    let ceramicData: CeramicData | null = null
-    if (ceramicEnabled) {
-      ceramicData = await resolveCeramic(address)
-    }
 
     res
       .status(200)
@@ -148,8 +150,11 @@ export default async function handler(
   }
 }
 
+
+
 const resolveCeramic = async (address: string) => {
-  const cp = new CyberProfile({provider: provider})
+  console.log('ceramic', address)
+  const cp = new CeramicResolver(address)
   const profile = await cp.getProfile()
   console.log(profile)
   return null
