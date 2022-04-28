@@ -23,7 +23,7 @@ const maxSize = 4 * 1024 * 1024; // 4mb is max response size for vercel serverle
  *         description: address or ENS name
  *     responses:
  *       200:
- *         description: An avatar in webp format
+ *         description: Success
  *         headers:
  *           x-vercel-cache: 
  *             type: "string"
