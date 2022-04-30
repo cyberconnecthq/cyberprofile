@@ -47,7 +47,6 @@ import { resolveEns } from "@/utils/provider";
  *              nullable: true
  *
  */
-
  export type DataEnsAvatar = {
   record: string; // the original avatar text record
   type: "uri:https" | "uri:data" | "uri:ipfs" | "nft:erc721" | "nft:erc1155"; // the type of avatar text record. supports `uri:https`, `uri:data`, `uri:ipfs`, `nft-erc721`, `nft-erc1155`. see https://docs.ens.domains/ens-improvement-proposals/ensip-12-avatar-text-records nftMetadataURL: string | null; // only available if use NFT type record
