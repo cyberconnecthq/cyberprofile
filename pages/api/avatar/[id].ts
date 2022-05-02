@@ -21,6 +21,11 @@ const maxSize = 4 * 1024 * 1024; // 4mb is max response size for vercel serverle
  *           type: string
  *         required: true
  *         description: address or ENS name
+ *       - in: query
+ *         name: s
+ *         schema:
+ *           type: integer
+ *         description: The number of pixel of the response avatar in square. Min is 1, max is 2048.
  *     responses:
  *       200:
  *         description: Success

@@ -32,7 +32,20 @@ Use the hosted API [here](https://cyberprofile.vercel.app/). A SwaggerUI is avai
 https://cyberprofile.vercel.app/api/profile/pisofa.eth
 ```
 ```
-{"address":"0xeBeD0BF2701e905b4C576B3dC943D797bAc226ed","name":"pisofa.eth","primaryName":"pisofa.eth","ensAvatar":{"record":"eip155:1/erc721:0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B/11850","type":"nft:erc721","nftMetadata":"{\"name\":\"CloneX #18924\",\"description\":\"🧬 CLONE X 🧬\\n\\n20,000 next-gen Avatars, by RTFKT and Takashi Murakami 🌸\\n\\nIf you own a clone without any Murakami trait please read the terms regarding RTFKT - Owned Content here: https://rtfkt.com/legal-2A\\n\\nYou are also entitled to a commercial license, please read the terms to that here: https://rtfkt.com/legal-2C\",\"attributes\":[{\"trait_type\":\"DNA\",\"value\":\"Human\"},{\"trait_type\":\"Eye Color\",\"value\":\"BLU\"},{\"trait_type\":\"Hair\",\"value\":\"BLU Curtains\"},{\"trait_type\":\"Clothing\",\"value\":\"BLCK VARSITY JCKT\"},{\"trait_type\":\"Mouth\",\"value\":\"ROBO\"}],\"image\":\"https://clonex-assets.rtfkt.com/images/11850.png\"}","nftOwner":"0xeBeD0BF2701e905b4C576B3dC943D797bAc226ed","nftBalance":null,"nftOwned":true,"url":"https://clonex-assets.rtfkt.com/images/11850.png"}}
+{
+   "address":"0xeBeD0BF2701e905b4C576B3dC943D797bAc226ed",
+   "name":"pisofa.eth",
+   "primaryName":"pisofa.eth",
+   "ensAvatar":{
+      "record":"eip155:1/erc721:0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B/11850",
+      "type":"nft:erc721",
+      "nftMetadata":"{\"name\":\"CloneX #18924\",\"description\":\"🧬 CLONE X 🧬\\n\\n20,000 next-gen Avatars, by RTFKT and Takashi Murakami 🌸\\n\\nIf you own a clone without any Murakami trait please read the terms regarding RTFKT - Owned Content here: https://rtfkt.com/legal-2A\\n\\nYou are also entitled to a commercial license, please read the terms to that here: https://rtfkt.com/legal-2C\",\"attributes\":[{\"trait_type\":\"DNA\",\"value\":\"Human\"},{\"trait_type\":\"Eye Color\",\"value\":\"BLU\"},{\"trait_type\":\"Hair\",\"value\":\"BLU Curtains\"},{\"trait_type\":\"Clothing\",\"value\":\"BLCK VARSITY JCKT\"},{\"trait_type\":\"Mouth\",\"value\":\"ROBO\"}],\"image\":\"https://clonex-assets.rtfkt.com/images/11850.png\"}",
+      "nftOwner":"0xeBeD0BF2701e905b4C576B3dC943D797bAc226ed",
+      "nftBalance":null,
+      "nftOwned":true,
+      "url":"https://clonex-assets.rtfkt.com/images/11850.png"
+   }
+}
 ```
 **Avatar with resizing**
 ```

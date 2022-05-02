@@ -32,37 +32,47 @@ export type Data = {
  *      properties:
  *        address:
  *          type: string
+ *          description: The address.
  *        name:
  *          type: string
  *          nullable: true
+ *          description: Should be the same as primaryName unless query was with made with non-primary ENS
  *        primaryName:
  *          type: string
  *          nullable: true
+ *          description: The primary name / reverse record for the address
  *        ensAvatar:
  *          type: object
  *          nullable: true
  *          properties:
  *            record:
  *              type: string
+ *              description: The original avatar text record set in ENS
  *            type:
  *              type: string
  *              enum: ["uri:https", "uri:data", "uri:ipfs", "nft:erc721", "nft:erc1155"]
+ *              description: The type of ENS avatar
  *            nftMedata:
  *              type: string
  *              nullable: true
+ *              description: The metadata json of the avatar NFT
  *            nftOwner:
  *              type: string
  *              nullable: true
+ *              description: The owner of the avatar NFT (ERC721)
  *            nftBalance:
  *              type: string
  *              nullable: true
+ *              description: The balance of the avatar NFT owned by ENS holder (ERC1155) 
  *            nftOwned:
  *              type: boolean
  *              nullable: true
+ *              description: Whether the ENS holder owns the avatar NFT
  *            url:
  *              type: string
  *              format: uri
  *              nullable: true
+ *              description: The avatar NFT image url
  * /api/profile/{id}:
  *   get:
  *     tags: [Profile]
