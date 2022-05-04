@@ -13,7 +13,7 @@ export const swaggerSpec = {
 
 export const NotFoundError = new Error("Not Found");
 
-export const CERAMIC_API_URL = "https://ceramic-clay.3boxlabs.com";
+export const CERAMIC_API_URL = "https://ceramic.cyberconnect.dev";
 
 export const model = {
   schemas: {
