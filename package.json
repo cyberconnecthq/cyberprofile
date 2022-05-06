@@ -19,6 +19,7 @@
     "@glazed/types": "^0.2.0",
     "axios": "^0.26.1",
     "ceramic-cacao": "^1.0.0",
+    "cors": "^2.8.5",
     "dids": "^3.0.0",
     "ethers": "^5.6.2",
     "idb": "^7.0.1",
@@ -33,6 +34,7 @@
     "web3modal": "^1.9.6"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.12",
     "@types/node": "17.0.23",
     "@types/react": "17.0.43",
     "@types/react-dom": "17.0.14",

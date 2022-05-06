@@ -5,6 +5,7 @@ import { resolveEns } from "@/utils/provider";
 import type { NextApiRequest, NextApiResponse } from "next";
 import axios from "axios";
 import sharp from "sharp";
+import { runCors } from "@/utils/cors";
 
 const maxSize = 4 * 1024 * 1024; // 4mb is max response size for vercel serverless
 
@@ -30,7 +31,7 @@ const maxSize = 4 * 1024 * 1024; // 4mb is max response size for vercel serverle
  *       200:
  *         description: Success
  *         headers:
- *           x-vercel-cache: 
+ *           x-vercel-cache:
  *             type: "string"
  *             description: "vercel serverless cache state. see https://vercel.com/docs/concepts/edge-network/caching#x-vercel-cache"
  *         content:
@@ -45,12 +46,13 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Buffer>
 ) {
+  await runCors(req, res);
   const queryId = req.query.id;
   let size = 80; // following gravatar default
   if (req.query.s) {
     const requestedSize = parseInt(req.query.s as string); // optional size input
     if (1 < requestedSize && requestedSize < 2048) {
-      size = requestedSize
+      size = requestedSize;
     }
   }
   const id = Array.isArray(queryId) ? queryId[0] : queryId;

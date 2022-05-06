@@ -102,6 +102,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
+  await runCors(req, res);
   const queryId = req.query.id;
   const id = Array.isArray(queryId) ? queryId[0] : queryId;
 
