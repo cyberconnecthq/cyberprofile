@@ -4,6 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { parseId } from '@/utils/parser'
 import { NotFoundError } from "@/utils/const";
 import { resolveEns } from "@/utils/provider";
+import { runCors } from "@/utils/cors";
 
 export type DataEnsAvatar = {
   record: string; // the original avatar text record
