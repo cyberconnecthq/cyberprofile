@@ -1,7 +1,7 @@
 import { CyberProvider } from "./resolver";
 
 export const provider = new CyberProvider(
-  "https://mainnet.infura.io/v3/df3ea510dc9b4b16b05e7ddf74b64f19"
+  `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`
 );
 
 
