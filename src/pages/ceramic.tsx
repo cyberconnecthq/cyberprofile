@@ -6,10 +6,13 @@ import * as KeyDidResolver from "key-did-resolver";
 import { DID } from "dids";
 import { getSeed } from "@/utils/store";
 import { ModelManager } from "@glazed/devtools";
-import { CyberProfile, ProfileType } from "cyberprofile";
+// import { CyberProfile, ProfileType } from "../";
 import { cyberProfileSchema } from "../utils/const";
+import { getResolver as getKeyResolver } from "key-did-resolver";
+import { getResolver as get3IDResolver } from "@ceramicnetwork/3id-did-resolver";
+import { EthereumAuthProvider, ThreeIdConnect } from "@3id/connect";
 
-const CERAMIC_API_URL = "https://ceramic-clay.3boxlabs.com";
+const CERAMIC_API_URL = "https://ceramic.cyberconnect.dev";
 const ceramic = new CeramicClient(CERAMIC_API_URL);
 // @ts-ignore
 const manager = new ModelManager({ ceramic });
@@ -21,7 +24,7 @@ function useForceUpdate() {
 
 export default function Ceramic() {
   const { connectWallet, address, provider } = useWeb3();
-  const [cyberProfile, setCyberProfile] = useState<CyberProfile>();
+  const [cyberProfile, setCyberProfile] = useState<any>();
   const [dataLoading, setDataLoading] = useState<boolean>(true);
   const [updateLoading, setUpdateLoading] = useState<boolean>(false);
   const [name, setName] = useState<string>("");
@@ -31,7 +34,7 @@ export default function Ceramic() {
   // Profile Fields
   const [displayName, setDisplayName] = useState<string>("");
   const [bio, setBio] = useState<string>("");
-  const [type, setType] = useState<ProfileType>("ORGANIZATION");
+  // const [type, setType] = useState<ProfileType>("ORGANIZATION");
   const [handle, setHandle] = useState<string>("");
   const [profilePicture, setProfilePicture] = useState<string>("");
   const [backgroundPicture, setBackgroundPicture] = useState<string>("");
@@ -41,25 +44,25 @@ export default function Ceramic() {
 
   const forceUpdate = useForceUpdate();
 
-  useEffect(() => {
-    if (provider?.provider && !cyberProfile) {
-      const cyberProfile = new CyberProfile(provider);
-      cyberProfile.initDocument().finally(() => {
-        const basic = cyberProfile.basicProfileDocument;
-        const cyber = cyberProfile.cyberProfileDocument;
-        setDisplayName(basic?.content.displayName || "");
-        setBio(basic?.content.bio || "");
-        setType(cyber?.content.type || "ORGANIZATION");
-        setHandle(cyber?.content.handle || "");
-        setProfilePicture(cyber?.content.profilePicture || "");
-        setBackgroundPicture(cyber?.content.backgroundPicture || "");
-        setSector(cyber?.content.sector || "");
+  // useEffect(() => {
+  //   if (provider?.provider && !cyberProfile) {
+  //     const cyberProfile = new CyberProfile(provider);
+  //     cyberProfile.initDocument().finally(() => {
+  //       const basic = cyberProfile.basicProfileDocument;
+  //       const cyber = cyberProfile.cyberProfileDocument;
+  //       setDisplayName(basic?.content.displayName || "");
+  //       setBio(basic?.content.bio || "");
+  //       setType(cyber?.content.type || "ORGANIZATION");
+  //       setHandle(cyber?.content.handle || "");
+  //       setProfilePicture(cyber?.content.profilePicture || "");
+  //       setBackgroundPicture(cyber?.content.backgroundPicture || "");
+  //       setSector(cyber?.content.sector || "");
 
-        setDataLoading(false);
-      });
-      setCyberProfile(cyberProfile);
-    }
-  }, [provider, cyberProfile]);
+  //       setDataLoading(false);
+  //     });
+  //     setCyberProfile(cyberProfile);
+  //   }
+  // }, [provider, cyberProfile]);
 
   const pkh = useMemo(() => {
     if (!address) return null;
@@ -80,13 +83,30 @@ export default function Ceramic() {
     return did;
   };
 
+  const auth = async () => {
+    const threeID = new ThreeIdConnect();
+    const authProvider = new EthereumAuthProvider(provider?.provider, address);
+    await threeID.connect(authProvider);
+    const did = new DID({
+      // Get the DID provider from the 3ID Connect instance
+      provider: threeID.getDidProvider(),
+      resolver: {
+        ...get3IDResolver(ceramic),
+        ...getKeyResolver(),
+      },
+    });
+    await did.authenticate();
+    ceramic.did = did;
+  };
+
   const createSchema = async () => {
     const did = await getDidKey(address);
     did.authenticate();
     console.log(did);
     ceramic.setDID(did);
+    // await auth();
     const streamID = await manager.createSchema(
-      "TestCyberProfileSchema",
+      "CyberProfileSchema",
       // @ts-ignore
       cyberProfileSchema
     );
@@ -100,6 +120,7 @@ export default function Ceramic() {
     const did = await getDidKey(address);
     did.authenticate();
     ceramic.setDID(did);
+    // await auth();
 
     const cyberProfileDefinition = {
       name: "Cyber Profile",
@@ -108,7 +129,7 @@ export default function Ceramic() {
     };
 
     const res = await manager.createDefinition(
-      "TestCyberProfileDefinition",
+      "CyberProfileDefinition",
       cyberProfileDefinition
     );
 
@@ -128,7 +149,7 @@ export default function Ceramic() {
         await cyberProfile.updateProfile({
           displayName,
           bio,
-          type,
+          // type,
           handle,
           profilePicture,
           backgroundPicture,
@@ -152,7 +173,7 @@ export default function Ceramic() {
   return (
     <div className="flex flex-col justify-center items-center p-4 bg-gray-100">
       <h1>Ceramic Demo</h1>
-      {/* <div>
+      <div>
         <button
           className="mt-4 px-4 py-2 rounded-lg bg-blue-500 text-white"
           onClick={createSchema}
@@ -176,7 +197,7 @@ export default function Ceramic() {
           deploy Schema
         </button>
       </div>
-      <div>----------------------------------------------------------</div> */}
+      <div>----------------------------------------------------------</div>
       {!address ? (
         <div>
           <button
@@ -216,7 +237,7 @@ export default function Ceramic() {
                     className="p-2 rounded-lg"
                   />
                 </div>
-                <div>
+                {/* <div>
                   <span>type: </span>
                   <select
                     value={type}
@@ -225,7 +246,7 @@ export default function Ceramic() {
                     <option value="ORGANIZATION">ORGANIZATION</option>
                     <option value="PERSONAL">PERSONAL</option>
                   </select>
-                </div>
+                </div> */}
                 <div>
                   <span>handle: </span>
                   <input

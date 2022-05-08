@@ -23,12 +23,11 @@ export const cyberProfileSchema = {
     },
     type: {
       type: "string",
-      pattern: "(PERSONAL|ORGANIZATION)",
     },
-    profilePicture: {
+    avatar: {
       type: "string",
     },
-    backgroundPicture: {
+    background: {
       type: "string",
     },
     sector: {
@@ -55,51 +54,10 @@ export const cyberProfileSchema = {
           type: "string",
         },
         type: {
-          $ref: "#/definitions/blockType",
+          type: "string",
         },
         content: {
           type: "object",
-          properties: {
-            link: {
-              $ref: "#/definitions/link",
-            },
-            links: {
-              type: "array",
-              items: {
-                $ref: "#/definitions/link",
-              },
-            },
-            members: {
-              type: "array",
-              items: {
-                $ref: "#/definitions/member",
-              },
-            },
-          },
-        },
-      },
-    },
-    blockType: {
-      type: "string",
-      pattern: "(LINK|MIRROR|MEDIUM|TWEET|TEAM|BACKER)",
-    },
-    link: {
-      type: "string",
-    },
-    member: {
-      type: "object",
-      properties: {
-        address: {
-          type: "string",
-        },
-        name: {
-          type: "string",
-        },
-        title: {
-          type: "string",
-        },
-        avatar: {
-          type: "string",
         },
       },
     },
