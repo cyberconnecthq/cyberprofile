@@ -88,8 +88,8 @@ export default async function handler(
             )
             .setHeader("Content-Type", contentType)
             .send(resp.data);
+          return;
         }
-        return;
         result = resp.data as Buffer;
       } catch (e) {
         console.error(e);
