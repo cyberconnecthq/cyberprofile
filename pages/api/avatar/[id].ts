@@ -74,8 +74,18 @@ export default async function handler(
           .send(rst.data);
         return;
       }
-      const result = (await axios({ url, responseType: "arraybuffer" }))
-        .data as Buffer;
+      let result;
+      try {
+        result = (await axios({ url, responseType: "arraybuffer" }))
+          .data as Buffer;
+      } catch (e) {
+        console.error(e);
+        // @ts-ignore
+        if (e.response && e.response.status >= 400 && e.response.status < 500) {
+          res.status(404).end();
+          return;
+        }
+      }
       const sharped = await sharp(result)
         .resize(size, size)
         .webp({ lossless: true })
