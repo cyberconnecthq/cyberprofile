@@ -75,9 +75,22 @@ export default async function handler(
         return;
       }
       let result;
+      let resp;
       try {
-        result = (await axios({ url, responseType: "arraybuffer" }))
-          .data as Buffer;
+        resp = await axios({ url, responseType: "arraybuffer" });
+        const contentType = resp.headers["content-type"];
+        if (contentType.startsWith("video")) {
+          res
+            .status(200)
+            .setHeader(
+              "Cache-Control",
+              `s-maxage=${60 * 60 * 24}, stale-while-revalidate`
+            )
+            .setHeader("Content-Type", contentType)
+            .send(resp.data);
+        }
+        return;
+        result = resp.data as Buffer;
       } catch (e) {
         console.error(e);
         // @ts-ignore
