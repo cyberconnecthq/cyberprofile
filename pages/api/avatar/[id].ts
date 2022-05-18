@@ -119,10 +119,10 @@ export default async function handler(
       throw NotFoundError;
     }
   } catch (e) {
-    console.error(e);
     if (e === NotFoundError) {
       res.status(404).end();
     } else {
+      console.error(e);
       res.status(500).end();
     }
   }
