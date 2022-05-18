@@ -6,6 +6,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import axios from "axios";
 import sharp from "sharp";
 import { runCors } from "@/utils/cors";
+var parseDataUri = require("parse-data-uri");
 
 const maxSize = 4 * 1024 * 1024; // 4mb is max response size for vercel serverless
 
@@ -61,6 +62,18 @@ export default async function handler(
     const { avatar } = await resolveEns(address);
     if (avatar?.url) {
       const url = avatar.url;
+      if (url.startsWith("data:")) {
+        const rst = parseDataUri(url);
+        res
+          .status(200)
+          .setHeader(
+            "Cache-Control",
+            `s-maxage=${60 * 60 * 24}, stale-while-revalidate`
+          )
+          .setHeader("Content-Type", rst.mimeType)
+          .send(rst.data);
+        return;
+      }
       const result = (await axios({ url, responseType: "arraybuffer" }))
         .data as Buffer;
       const sharped = await sharp(result)
@@ -86,6 +99,8 @@ export default async function handler(
     console.error(e);
     if (e === NotFoundError) {
       res.status(404).end();
+    } else {
+      res.status(500).end();
     }
   }
 }
