@@ -24,12 +24,12 @@ This is definitely an opinionated aproach which saves some ambiguity.
 ## Usage
 It's open source so you can host yourself very easily (maybe also using vercel)
 
-Use the hosted API [here](https://cyberprofile.vercel.app/). A SwaggerUI is available.
+Use the hosted API [here](https://cyberprofile-v2.vercel.app/). A SwaggerUI is available.
 
 ## Examples
 **Profile Metadata**
 ```
-https://cyberprofile.vercel.app/api/profile/pisofa.eth
+https://cyberprofile-v2.vercel.app/api/profile/pisofa.eth
 ```
 ```
 {
@@ -49,7 +49,7 @@ https://cyberprofile.vercel.app/api/profile/pisofa.eth
 ```
 **Avatar with resizing**
 ```
-https://cyberprofile.vercel.app/api/avatar/pisofa.eth?s=500
+https://cyberprofile-v2.vercel.app/api/avatar/pisofa.eth?s=500
 ```
 
 ## Used by (add your project by PR)
